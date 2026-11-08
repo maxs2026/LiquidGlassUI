@@ -13,6 +13,7 @@ jobs:
   build:
     name: Compile debug APK
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -27,13 +28,14 @@ jobs:
           mkdir -p /tmp/liquidglassui
           unzip -oq LiquidGlassUI-Phase2-v0.3.zip -d /tmp/liquidglassui
 
-          PROJECT_DIR=$(find /tmp/liquidglassui -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs -r dirname)
+          PROJECT_FILE=$(find /tmp/liquidglassui -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit)
 
-          if [ -z "$PROJECT_DIR" ]; then
+          if [ -z "$PROJECT_FILE" ]; then
             echo "Gradle project not found inside ZIP!"
             exit 1
           fi
 
+          PROJECT_DIR=$(dirname "$PROJECT_FILE")
           cp -a "$PROJECT_DIR/." .
 
       - name: Set up Java 17
@@ -44,9 +46,11 @@ jobs:
 
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
 
       - name: Install Android SDK packages
-        run: sdkmanager 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
+        run: sdkmanager --install 'platforms;android-35' 'build-tools;35.0.0' 'platform-tools'
 
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v4
